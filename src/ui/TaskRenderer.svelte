@@ -98,7 +98,7 @@
       on:click|preventDefault={async () => {
         await onClickTask(todo);
       }} />
-    <div bind:this={taskContentEl} class="todoist-task-content" />
+    <a aria-label-position="top" aria-label={todo.content + "-" + todo.projectID + "-" + todo.id} data-href={todo.content + "-" + todo.projectID + "-" + todo.id} href={todo.content + "-" + todo.projectID + "-" + todo.id} class="internal-link" target="_blank" rel="noopener">{todo.content}</a>
   </div>
   <div class="task-metadata">
     {#if settings.renderProject && renderProject}
