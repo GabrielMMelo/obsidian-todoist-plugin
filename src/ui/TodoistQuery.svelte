@@ -6,6 +6,7 @@
   import type { TodoistApi } from "../api/api";
   import type { Task, Project } from "../api/models";
   import TaskList from "./TaskList.svelte";
+  import ProjectList from "./ProjectList.svelte";
   import GroupedTaskList from "./GroupedTaskList.svelte";
   import { Result } from "../result";
   import ErrorDisplay from "./ErrorDisplay.svelte";
@@ -30,9 +31,16 @@
     if (query?.autorefresh) {
       // First, if query.autorefresh is set.. we always use that value.
       if (autoRefreshIntervalId == null) {
-        autoRefreshIntervalId = window.setInterval(async () => {
-          await fetchTodos();
-        }, query.autorefresh * 1000);
+        if(query.onlyProjects){
+          autoRefreshIntervalId = window.setInterval(async () => {
+            await fetchProjects();
+          }, query.autorefresh * 1000);
+        }
+        else{
+            autoRefreshIntervalId = window.setInterval(async () => {
+            await fetchTodos();
+          }, query.autorefresh * 1000);
+        }
       }
     } else {
       // Otherwise we use the settings value.
@@ -42,9 +50,16 @@
       }
 
       if (settings.autoRefreshToggle) {
-        autoRefreshIntervalId = window.setInterval(async () => {
-          await fetchTodos();
-        }, settings.autoRefreshInterval * 1000);
+        if(query.onlyProjects) {
+          autoRefreshIntervalId = window.setInterval(async () => {
+            await fetchProjects();
+          }, settings.autoRefreshInterval * 1000);
+        }
+        else {
+          autoRefreshIntervalId = window.setInterval(async () => {
+            await fetchTodos();
+          }, settings.autoRefreshInterval * 1000);
+        }
       }
     }
   }
@@ -60,11 +75,17 @@
   $: title = query.name.replace("{task_count}", `${taskCount}`);
 
   let tasks: Result<Task[], Error> = Result.Ok([]);
+  let projects: Result<Project[], Error> = Result.Ok([]);
   let groupedTasks: Result<Project[], Error> = Result.Ok([]);
   let fetching: boolean = false;
 
   onMount(async () => {
-    await fetchTodos();
+    if (query.onlyProjects) {
+      await fetchProjects();
+    }
+    else {
+      await fetchTodos();
+    }
   });
 
   onDestroy(() => {
@@ -93,13 +114,28 @@
       fetching = false;
     }
   }
+
+  async function fetchProjects() {
+    if (fetching) {
+      return;
+    }
+
+    try {
+      fetching = true;
+      //projects = await api.getProjectsTree();
+      projects = await api.getTasksGroupedByProject();
+      fetchedOnce = true;
+    } finally {
+      fetching = false;
+    }
+  }
 </script>
 
 <h4 class="todoist-query-title">{title}</h4>
 <button
   class="todoist-refresh-button"
   on:click={async () => {
-    await fetchTodos();
+    query.onlyProjects ? await fetchProjects() : fetchTodos()
   }}
   disabled={fetching}>
   <svg
@@ -116,30 +152,38 @@
   </svg>
 </button>
 <br />
-{#if fetchedOnce}
-  {#if query.group}
-    {#if groupedTasks.isOk()}
-      {#if groupedTasks.unwrap().length == 0}
-        <NoTaskDisplay />
+{#if query.onlyProjects}
+   <ProjectList
+        projects={projects.unwrap()}
+        {settings}
+        {api}
+        />
+{:else}
+  {#if fetchedOnce}
+    {#if query.group}
+      {#if groupedTasks.isOk()}
+        {#if groupedTasks.unwrap().length == 0}
+          <NoTaskDisplay />
+        {:else}
+          {#each groupedTasks.unwrap() as project (project.projectID)}
+            <GroupedTaskList
+              {project}
+              {settings}
+              {api}
+              sorting={query.sorting ?? []} />
+          {/each}
+        {/if}
       {:else}
-        {#each groupedTasks.unwrap() as project (project.projectID)}
-          <GroupedTaskList
-            {project}
-            {settings}
-            {api}
-            sorting={query.sorting ?? []} />
-        {/each}
+        <ErrorDisplay error={groupedTasks.unwrapErr()} />
       {/if}
+    {:else if tasks.isOk()}
+      <TaskList
+        tasks={tasks.unwrap()}
+        {settings}
+        {api}
+        sorting={query.sorting ?? []} />
     {:else}
-      <ErrorDisplay error={groupedTasks.unwrapErr()} />
+      <ErrorDisplay error={tasks.unwrapErr()} />
     {/if}
-  {:else if tasks.isOk()}
-    <TaskList
-      tasks={tasks.unwrap()}
-      {settings}
-      {api}
-      sorting={query.sorting ?? []} />
-  {:else}
-    <ErrorDisplay error={tasks.unwrapErr()} />
   {/if}
 {/if}

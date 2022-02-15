@@ -6,6 +6,7 @@ export type SortingOptions = typeof sortingOptions[number];
 
 export default interface IQuery {
   name: string;
+  onlyProjects: boolean;
   filter: string;
   autorefresh?: number;
   sorting?: SortingOptions[];
@@ -17,7 +18,11 @@ export function parseQuery(query: any): Result<IQuery, Error> {
     return Result.Err(new Error("Missing 'name' field in query."));
   }
 
-  if (!query.hasOwnProperty("filter")) {
+  if (query.hasOwnProperty("onlyProjects") && typeof query.onlyProjects != "boolean") {
+    return Result.Err(new Error("'onlyProjects' field must be a boolean."));
+  }
+
+  if (!query.hasOwnProperty("filter") && !query.hasOwnProperty("onlyProjects")) {
     return Result.Err(new Error("Missing 'filter' field in query"));
   }
 

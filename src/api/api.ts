@@ -183,6 +183,20 @@ export class TodoistApi {
     return Result.Ok({});
   }
 
+  async getProjectsTree(): Promise<Result<Project[], Error>> {
+    
+    const result = await this.getProjects();
+    console.log(result)
+    const tree = result.unwrap().map((project) => {
+      return new Project(project)
+    })
+    debug({
+      msg: "Built project tree",
+      context: tree,
+    });
+    return Result.Ok(tree);
+  }
+
   private async getProjects(): Promise<Result<IProjectRaw[], Error>> {
     const url = `https://api.todoist.com/rest/v1/projects`;
 

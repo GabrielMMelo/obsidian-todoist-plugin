@@ -171,6 +171,7 @@ export class Project {
   public readonly projectID: ProjectID;
   public readonly parentID?: ProjectID;
   public readonly order: number;
+  public readonly name: string;
 
   public tasks: Task[];
   public subProjects: Project[];
@@ -182,6 +183,7 @@ export class Project {
     this.projectID = raw.id;
     this.parentID = raw.parent_id;
     this.order = raw.order;
+    this.name = raw.name;
 
     this.tasks = [];
     this.subProjects = [];
@@ -305,6 +307,7 @@ export class Section {
   public readonly sectionID: SectionID;
   public readonly projectID: ProjectID;
   public readonly order: number;
+  public readonly name: string;
 
   public tasks: Task[];
 
@@ -312,6 +315,7 @@ export class Section {
     this.sectionID = raw.id;
     this.projectID = raw.project_id;
     this.order = raw.order;
+    this.name = raw.name;
   }
 
   public count(): number {
