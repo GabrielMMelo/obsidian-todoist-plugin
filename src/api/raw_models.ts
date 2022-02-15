@@ -5,6 +5,7 @@ export const UnknownProject: IProjectRaw = {
   parent_id: null,
   order: -1,
   name: "Unknown project",
+  inbox_project: false,
 };
 
 export const UnknownSection: ISectionRaw = {
@@ -35,6 +36,7 @@ export interface IProjectRaw {
   parent_id?: ProjectID;
   order: number;
   name: string;
+  inbox_project: boolean;
 }
 
 export interface ISectionRaw {

@@ -172,6 +172,7 @@ export class Project {
   public readonly parentID?: ProjectID;
   public readonly order: number;
   public readonly name: string;
+  public readonly inboxProject: boolean;
 
   public tasks: Task[];
   public subProjects: Project[];
@@ -184,6 +185,7 @@ export class Project {
     this.parentID = raw.parent_id;
     this.order = raw.order;
     this.name = raw.name;
+    this.inboxProject = raw.inbox_project;
 
     this.tasks = [];
     this.subProjects = [];

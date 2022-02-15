@@ -76,3 +76,7 @@ ul.todoist-task-list {
 .is-live-preview .block-language-todoist {
   padding-left: 15px;
 }
+
+.progress-badge {
+  width: 100%;
+}

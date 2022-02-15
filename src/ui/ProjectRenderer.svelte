@@ -68,6 +68,10 @@
     <a aria-label-position="top" aria-label={project.name + "-" + project.projectID} data-href={project.name + "-" + project.projectID} href={project.name + "-" + project.projectID} class="internal-link" target="_blank" rel="noopener">{project.name} </a>
   </div>
   <div class="task-metadata">
-    <img src={"https://progress-bar.dev/" + (project.sections.filter(getDone)[0]?.count()||0)/project.count()*100  + "/?scale=" + "100" + "&title=" + project.name + "&width=400)"}/>
+   {#if project.inboxProject}
+   <p>Count: {project.count()}</p>
+   {:else} 
+    <img class="progress-badge" src={"https://progress-bar.dev/" + ((project.sections.filter(getDone)[0]?.count()||0)/project.count()*100).toFixed()  + "/?scale=" + "100" + "&title=" + project.name + "&width=400)"}/>
+   {/if}
   </div>
 </li>

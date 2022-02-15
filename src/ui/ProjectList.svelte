@@ -17,6 +17,9 @@
     metadataUnsub();
   });
 
+  $: activeProjects = projects
+    .filter((project) => !["routine-tasks"].includes(project.name))
+    .sort((first: Project, second: Project) => (first.order||0) - (second.order||0));
   /*
   let projectsPendingClose: ID[] = [];
   $: todos = tasks
@@ -26,9 +29,9 @@
 
 </script>
 
-{#if projects.length != 0}
+{#if activeProjects.length != 0}
   <ul class="contains-task-list todoist-task-list">
-    {#each projects as project (project.projectID)}
+    {#each activeProjects as project (project.projectID)}
       <ProjectRenderer
         {metadata}
         {settings}
