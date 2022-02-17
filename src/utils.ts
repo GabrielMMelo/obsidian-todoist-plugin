@@ -46,6 +46,10 @@ export function notification(contents: string, timeoutMs: number) {
   }, timeoutMs);
 }
 
+export function getCurrentNoteName(app: App): string {
+  return  app.workspace.activeLeaf.view.getState().file.replace(/.*\//i, '').replace('.md', '')
+}
+
 export function getCurrentPageMdLink(app: App): string {
   const vaultName = app.vault.adapter.getName();
 

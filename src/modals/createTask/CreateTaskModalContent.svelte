@@ -16,6 +16,7 @@
   export let api: TodoistApi;
   export let close: () => void;
   export let value: string;
+  export let description: string;
   export let initialCursorPosition: number | undefined;
 
   let activeLabels: LabelOption[] = null;
@@ -57,6 +58,10 @@
 
     if (date) {
       opts.due_date = date.format("YYYY-MM-DD");
+    }
+
+    if (description) {
+      opts.description = description;
     }
 
     const result = await api.createTask(value, opts);

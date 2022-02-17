@@ -9,7 +9,8 @@ export default class CreateTaskModal extends Modal {
     app: App,
     api: TodoistApi,
     initialValue: string,
-    initialCursorPosition?: number
+    initialCursorPosition?: number,
+    description?: string
   ) {
     super(app);
 
@@ -22,6 +23,7 @@ export default class CreateTaskModal extends Modal {
         close: () => this.close(),
         value: initialValue,
         initialCursorPosition: initialCursorPosition,
+        description: description,
       },
     });
 

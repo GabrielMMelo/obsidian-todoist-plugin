@@ -22,6 +22,8 @@ export class Task {
   public projectID: ProjectID;
   public sectionID?: SectionID;
   public labelIDs: LabelID[];
+  public url: string;
+  public description?: string;
 
   public parent?: Task;
   public children: Task[];
@@ -47,6 +49,8 @@ export class Task {
     this.projectID = raw.project_id;
     this.sectionID = raw.section_id != 0 ? raw.section_id : null;
     this.labelIDs = raw.label_ids;
+    this.url = raw.url;
+    this.description = raw.description;
 
     this.children = [];
 

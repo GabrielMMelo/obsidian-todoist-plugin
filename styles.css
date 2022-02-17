@@ -80,3 +80,11 @@ ul.todoist-task-list {
 .progress-badge {
   width: 100%;
 }
+
+.link-to-todoist {
+  text-decoration: none;
+}
+
+.task-list-item {
+  margin-bottom: 0.5rem;
+}

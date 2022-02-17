@@ -20,6 +20,7 @@ export interface ICreateTaskOptions {
   priority: number;
   project_id?: number;
   section_id?: number;
+  description?: string;
   due_date?: string;
   label_ids?: number[];
 }

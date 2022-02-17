@@ -90,6 +90,7 @@
   class="task-list-item {todo.isOverdue() ? 'task-overdue' : ''}
           {todo.hasTime ? 'has-time' : 'has-no-time'}">
   <div class={getPriorityClass(todo.priority)}>
+    <!--
     <input
       disabled={!isCompletable}
       data-line="1"
@@ -98,7 +99,9 @@
       on:click|preventDefault={async () => {
         await onClickTask(todo);
       }} />
-    <a aria-label-position="top" aria-label={todo.content + "-" + todo.projectID + "-" + todo.id} data-href={todo.content + "-" + todo.projectID + "-" + todo.id} href={todo.content + "-" + todo.projectID + "-" + todo.id} class="internal-link" target="_blank" rel="noopener">{todo.content}</a>
+    -->
+    <!-- Not using a note name as a concatenation of content + projectID + taskID. Just the title itself -->
+    <a aria-label-position="top" aria-label={todo.content} data-href={todo.content} href={todo.content} class="internal-link" target="_blank" rel="noopener">{todo.content}</a> <span> <a class="link-to-todoist" href="{todo.url}">↳</a></span>
   </div>
   <div class="task-metadata">
     {#if settings.renderProject && renderProject}

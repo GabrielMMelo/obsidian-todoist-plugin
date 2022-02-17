@@ -23,6 +23,8 @@ export interface ITaskRaw {
   priority: number;
   content: string;
   order: number;
+  url: string;
+  description?: string;
   parent?: ID;
   due?: {
     recurring: boolean;

@@ -3,7 +3,7 @@ import { TodoistApi } from "./api/api";
 import debug from "./log";
 import { App, Plugin, PluginManifest } from "obsidian";
 import TodoistApiTokenModal from "./modals/enterToken/enterTokenModal";
-import { getCurrentPageMdLink } from "./utils";
+import { getCurrentPageMdLink, getCurrentNoteName } from "./utils";
 import CreateTaskModal from "./modals/createTask/createTaskModal";
 import QueryInjector from "./queryInjector";
 import { getTokenPath } from "./token";
@@ -75,8 +75,9 @@ export default class TodoistPlugin extends Plugin {
         new CreateTaskModal(
           this.app,
           this.api,
-          `${currentSelection} ${getCurrentPageMdLink(this.app)}`,
-          currentSelection.length
+          `${currentSelection} ${getCurrentNoteName(this.app)}`,
+          currentSelection.length,
+          `${currentSelection} ${getCurrentPageMdLink(this.app)}`
         );
       },
     });
