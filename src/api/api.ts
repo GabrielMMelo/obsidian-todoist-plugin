@@ -187,7 +187,6 @@ export class TodoistApi {
   async getProjectsTree(): Promise<Result<Project[], Error>> {
     
     const result = await this.getProjects();
-    console.log(result)
     const tree = result.unwrap().map((project) => {
       return new Project(project)
     })
