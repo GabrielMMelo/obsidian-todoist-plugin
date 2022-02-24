@@ -327,6 +327,14 @@ export class Section {
   public count(): number {
     return this.tasks.reduce((sum, task) => sum + task.count(), 0);
   }
+
+  static buildTree(sections: ISectionRaw[]): Section[] {
+    const mapping = new Map<ID, Section>();
+
+    sections.forEach((section) => mapping.set(section.id, new Section(section)));
+
+    return Array.from(mapping.values());
+  }
 }
 
 interface Intermediate<T> {

@@ -3,7 +3,7 @@
   import { getContext, onMount } from "svelte";
   import { fade } from "svelte/transition";
   import type { ITodoistMetadata, TodoistApi } from "../api/api";
-  import type { Task } from "../api/models";
+  import type { Task, Section } from "../api/models";
   import { UnknownProject, UnknownSection } from "../api/raw_models";
   import { showTaskContext } from "../contextMenu";
   import type { ISettings } from "../settings";
@@ -16,6 +16,7 @@
   export let sorting: string[];
   export let renderProject: boolean;
   export let onClickTask: (task: Task) => Promise<void>;
+  export let sections: Section[];
 
   export let todo: Task;
 
@@ -28,6 +29,8 @@
   onMount(async () => {
     await renderMarkdown(todo.content);
   });
+
+
 
   async function renderMarkdown(content: string): Promise<void> {
     // Escape leading '#' or '-' so they aren't rendered as headers/bullets.
@@ -119,10 +122,14 @@
           </svg>
         {/if}
         {metadata.projects.get_or_default(todo.projectID, UnknownProject).name}
-        {#if todo.sectionID}
+        <span>
           |
-          {metadata.sections.get_or_default(todo.sectionID, UnknownSection).name}
-        {/if}
+            <select class="todoist-task-section">
+            {#each Array(sections?.filter((section) => section.projectID == todo.projectID)?.length) as _, i}
+            <option value="{sections?.filter((section) => section.projectID == todo.projectID)?.[i]?.sectionID}" selected={true ? metadata.sections.get_or_default(todo.sectionID, UnknownSection).id == sections?.filter((section) => section.projectID == todo.projectID)?.[i]?.sectionID : false}>{sections?.filter((section) => section.projectID == todo.projectID)?.[i]?.name}</option>
+            {/each}
+          </select>
+        </span>
       </div>
     {/if}
     {#if settings.renderDate && todo.date}

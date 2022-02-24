@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { onMount, onDestroy, setContext } from "svelte";
+  import { onMount, onDestroy, afterUpdate, setContext } from "svelte";
   import type { App } from "obsidian";
   import { SettingsInstance, ISettings } from "../settings";
   import type IQuery from "../query";
   import type { TodoistApi } from "../api/api";
   import type { Task, Project } from "../api/models";
+  import { Section } from "../api/models";
   import TaskList from "./TaskList.svelte";
   import ProjectList from "./ProjectList.svelte";
   import GroupedTaskList from "./GroupedTaskList.svelte";
@@ -78,6 +79,7 @@
   let projects: Result<Project[], Error> = Result.Ok([]);
   let groupedTasks: Result<Project[], Error> = Result.Ok([]);
   let fetching: boolean = false;
+  let sections: Section[];
 
   onMount(async () => {
     if (query.onlyProjects) {
@@ -95,6 +97,10 @@
       clearInterval(autoRefreshIntervalId);
     }
   });
+
+  afterUpdate(() => {
+    api.metadata.subscribe((value) => (sections = Section.buildTree(Array.from(value.sections.values()))));
+  }) 
 
   async function fetchTodos() {
     if (fetching) {
@@ -179,8 +185,9 @@
     {:else if tasks.isOk()}
       <TaskList
         tasks={tasks.unwrap()}
-        {settings}
-        {api}
+        settings={settings}
+        api={api}
+        sections={sections}
         sorting={query.sorting ?? []} />
     {:else}
       <ErrorDisplay error={tasks.unwrapErr()} />

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
   import type { TodoistApi, ITodoistMetadata } from "../api/api";
-  import type { Task, ID } from "../api/models";
+  import type { Task, ID, Section } from "../api/models";
   import type { ISettings } from "../settings";
   import NoTaskDisplay from "./NoTaskDisplay.svelte";
   import TaskRenderer from "./TaskRenderer.svelte";
@@ -10,6 +10,7 @@
   export let settings: ISettings;
   export let api: TodoistApi;
   export let sorting: string[];
+  export let sections: Section[];
   export let renderProject: boolean = true;
   export let renderNoTaskInfo: boolean = true;
 
@@ -49,7 +50,8 @@
         {api}
         {sorting}
         {renderProject}
-        {todo} />
+        {todo}
+        sections={sections} />
     {/each}
   </ul>
 {:else if renderNoTaskInfo}
