@@ -2,26 +2,31 @@
   import { App, MarkdownRenderer } from "obsidian";
   import { getContext, onMount } from "svelte";
   import { fade } from "svelte/transition";
-  import type { ITodoistMetadata, TodoistApi } from "../api/api";
-  import type { Task } from "../api/models";
+  import type { TodoistApi, ITodoistMetadata, ICreateTaskOptions } from "../api/api";
+  import type { Task, Section } from "../api/models";
   import { UnknownProject, UnknownSection } from "../api/raw_models";
   import { showTaskContext } from "../contextMenu";
   import type { ISettings } from "../settings";
   import { APP_CONTEXT_KEY } from "../utils";
   import TaskList from "./TaskList.svelte";
+  import { Result } from "../result";
 
   export let metadata: ITodoistMetadata;
   export let settings: ISettings;
   export let api: TodoistApi;
   export let sorting: string[];
   export let renderProject: boolean;
+  export let allSections: Section[];
   export let onClickTask: (task: Task) => Promise<void>;
+  export let onChangeTask: (task: Task, options: ICreateTaskOptions) => Promise<boolean>;
 
   export let todo: Task;
 
   const app = getContext<App>(APP_CONTEXT_KEY);
 
   $: isCompletable = !todo.content.startsWith("*");
+  $: sections = allSections
+    .filter((section) => section.projectID == todo.projectID)
 
   let taskContentEl: HTMLDivElement;
 
@@ -82,6 +87,13 @@
       }
     );
   }
+
+  function onChangeTaskContainer(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+
+    console.log("evt", evt.target.value);
+  }
 </script>
 
 <li
@@ -121,7 +133,11 @@
         {metadata.projects.get_or_default(todo.projectID, UnknownProject).name}
         {#if todo.sectionID}
           |
-          {metadata.sections.get_or_default(todo.sectionID, UnknownSection).name}
+          <select name="todoist-task-section" on:change={onChangeTaskContainer}>
+          {#each sections as section (section.sectionID)}
+            <option value="{section.sectionID} selected={true ? todo.sectionID == section.sectionID : false}">{section.name}</option>
+          {/each}
+          </select>
         {/if}
       </div>
     {/if}

@@ -6,7 +6,7 @@ import type {
   ISectionRaw,
   ILabelRaw,
 } from "./raw_models";
-import { Task, Project, ID, ProjectID, SectionID, LabelID } from "./models";
+import { Task, Project, Section, ID, ProjectID, SectionID, LabelID } from "./models";
 import { ExtendedMap } from "../utils";
 import { Result } from "../result";
 
@@ -23,6 +23,7 @@ export interface ICreateTaskOptions {
   description?: string;
   due_date?: string;
   label_ids?: number[];
+  parent?: Task;
 }
 
 export class TodoistApi {
@@ -158,6 +159,23 @@ export class TodoistApi {
     return result.ok;
   }
 
+  async updateTask(id: ID, options?: ICreateTaskOptions): Promise<boolean> {
+    const url = `https://api.todoist.com/rest/v1/tasks/${id}`;
+    const data = { ...(options ?? {}) };
+
+    debug(url);
+
+    const result = await fetch(url, {
+      headers: new Headers({
+        Authorization: `Bearer ${this.token}`,
+      }),
+      body: JSON.stringify(data),
+      method: "POST",
+    });
+
+    return result.ok;
+  }
+
   async fetchMetadata(): Promise<Result<object, Error>> {
     const projectResult = await this.getProjects();
     const sectionResult = await this.getSections();
@@ -229,6 +247,28 @@ export class TodoistApi {
       return result.ok
         ? Result.Ok((await result.json()) as ISectionRaw[])
         : Result.Err(new Error(await result.text()));
+    } catch (e) {
+      return Result.Err(e);
+    }
+  }
+
+  async getAllSections(): Promise<Result<Section[], Error>> {
+    const url = `https://api.todoist.com/rest/v1/sections`
+    try {
+      const result = await fetch(url, {
+        headers: new Headers({
+          Authorization: `Bearer ${this.token}`,
+        }),
+        method: "GET",
+      });
+      if (result.ok) {
+        const sections = (await result.json()) as ISectionRaw[];
+        const tree = Section.buildTree(sections);
+
+        Result.Ok(tree);
+      } else {
+        Result.Err(new Error(await result.text()));
+      }
     } catch (e) {
       return Result.Err(e);
     }

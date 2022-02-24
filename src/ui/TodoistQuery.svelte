@@ -5,6 +5,7 @@
   import type IQuery from "../query";
   import type { TodoistApi } from "../api/api";
   import type { Task, Project } from "../api/models";
+  import { Section } from "../api/models";
   import TaskList from "./TaskList.svelte";
   import ProjectList from "./ProjectList.svelte";
   import GroupedTaskList from "./GroupedTaskList.svelte";
@@ -22,6 +23,7 @@
   let settings: ISettings = null;
   let autoRefreshIntervalId: number = null;
   let fetchedOnce: boolean = false;
+  
 
   const settingsUnsub = SettingsInstance.subscribe((value) => {
     settings = value;
@@ -74,16 +76,20 @@
 
   $: title = query.name.replace("{task_count}", `${taskCount}`);
 
+  let fetching: boolean = false;
   let tasks: Result<Task[], Error> = Result.Ok([]);
   let projects: Result<Project[], Error> = Result.Ok([]);
   let groupedTasks: Result<Project[], Error> = Result.Ok([]);
-  let fetching: boolean = false;
+  let sections: Section[];
+  
+
 
   onMount(async () => {
     if (query.onlyProjects) {
       await fetchProjects();
     }
     else {
+      api.metadata.subscribe((value) => (sections = Section.buildTree(Array.from(value.sections.values()))));
       await fetchTodos();
     }
   });
@@ -105,6 +111,7 @@
       fetching = true;
       if (query.group) {
         groupedTasks = await api.getTasksGroupedByProject(query.filter);
+          
       } else {
         tasks = await api.getTasks(query.filter);
       }
@@ -122,20 +129,33 @@
 
     try {
       fetching = true;
-      //projects = await api.getProjectsTree();
       projects = await api.getTasksGroupedByProject();
       fetchedOnce = true;
     } finally {
       fetching = false;
     }
   }
+
+  //  async function fetchSections() {
+  //   if (fetchingSections) {
+  //     return;
+  //   }
+
+  //   try {
+  //     fetchingSections = true;
+      
+  //     fetchedSectionsOnce = true;
+  //   } finally {
+  //     fetchingSections = false;
+  //   }
+  // }
 </script>
 
 <h4 class="todoist-query-title">{title}</h4>
 <button
   class="todoist-refresh-button"
   on:click={async () => {
-    query.onlyProjects ? await fetchProjects() : fetchTodos()
+    query.onlyProjects ? await fetchProjects() : await fetchTodos()
   }}
   disabled={fetching}>
   <svg
@@ -152,14 +172,21 @@
   </svg>
 </button>
 <br />
-{#if query.onlyProjects}
-   <ProjectList
+{#if fetchedOnce}
+  {#if query.onlyProjects}
+    <p>oi</p>
+    {#if projects.isOk()}
+     {projects.unwrap().length}
+      <ProjectList
         projects={projects.unwrap()}
-        {settings}
-        {api}
-        />
-{:else}
-  {#if fetchedOnce}
+        settings={settings}
+        api={api}
+      />
+    
+    {:else}
+      <p>Loading</p>
+    {/if}
+  {:else}
     {#if query.group}
       {#if groupedTasks.isOk()}
         {#if groupedTasks.unwrap().length == 0}
@@ -177,11 +204,16 @@
         <ErrorDisplay error={groupedTasks.unwrapErr()} />
       {/if}
     {:else if tasks.isOk()}
-      <TaskList
-        tasks={tasks.unwrap()}
-        {settings}
-        {api}
-        sorting={query.sorting ?? []} />
+      {#if tasks.unwrap().length == 0}
+        <NoTaskDisplay />
+      {:else}
+        <TaskList
+          tasks={tasks.unwrap()}
+          allSections={sections}
+          settings={settings}
+          api={api}
+          sorting={query.sorting ?? []} />
+      {/if}
     {:else}
       <ErrorDisplay error={tasks.unwrapErr()} />
     {/if}

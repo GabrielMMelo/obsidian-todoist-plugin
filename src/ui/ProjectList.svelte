@@ -40,5 +40,6 @@
     {/each}
   </ul>
 {:else}
+  <p>oi2</p>
   <NoProjectDisplay />
 {/if}
