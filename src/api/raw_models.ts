@@ -15,6 +15,13 @@ export const UnknownSection: ISectionRaw = {
   name: "Unknown section",
 };
 
+export const UnknownLabel: ILabelRaw = {
+  id: -1,
+  //color: -1,
+  //order: -1,
+  name: "Unknown label",
+};
+
 export interface ITaskRaw {
   id: ID;
   project_id: ProjectID;
@@ -51,4 +58,6 @@ export interface ISectionRaw {
 export interface ILabelRaw {
   id: LabelID;
   name: string;
+  //order: number;
+  //color: number
 }

@@ -2,9 +2,9 @@
   import { App, MarkdownRenderer } from "obsidian";
   import { getContext, onMount } from "svelte";
   import { fade } from "svelte/transition";
-  import type { ITodoistMetadata, TodoistApi } from "../api/api";
-  import type { Task, Section } from "../api/models";
-  import { UnknownProject, UnknownSection } from "../api/raw_models";
+  import type { ITodoistMetadata, TodoistApi, IUpdateTaskOptions } from "../api/api";
+  import type { Task, Section, Label } from "../api/models";
+  import { UnknownProject, UnknownSection, UnknownLabel } from "../api/raw_models";
   import { showTaskContext } from "../contextMenu";
   import type { ISettings } from "../settings";
   import { APP_CONTEXT_KEY } from "../utils";
@@ -16,13 +16,18 @@
   export let sorting: string[];
   export let renderProject: boolean;
   export let onClickTask: (task: Task) => Promise<void>;
-  export let sections: Section[];
+  export let onChangeTask: (task: Task, options: IUpdateTaskOptions) => Promise<boolean>;
+  export let isChild: boolean;
+  export let labels: Label[];
 
   export let todo: Task;
 
   const app = getContext<App>(APP_CONTEXT_KEY);
 
   $: isCompletable = !todo.content.startsWith("*");
+
+  // todo: create `routine projects` option on settings e make if customizable
+  $: isRoutine = ['routine-tasks'].includes(metadata.projects.get_or_default(todo?.projectID, UnknownProject)?.name)
 
   let taskContentEl: HTMLDivElement;
 
@@ -85,6 +90,17 @@
       }
     );
   }
+
+  function onChangeTaskContainer(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    console.log("evt", evt.target.value);
+    // chama a funcao do componente pai passando a task id e um objeto IUpdateTaskOptions
+    let opts: IUpdateTaskOptions = {
+      label_ids: [parseInt(evt.target.value)]
+    };
+    onChangeTask(todo, opts)
+  }
 </script>
 
 <li
@@ -93,7 +109,7 @@
   class="task-list-item {todo.isOverdue() ? 'task-overdue' : ''}
           {todo.hasTime ? 'has-time' : 'has-no-time'}">
   <div class={getPriorityClass(todo.priority)}>
-    <!--
+    {#if isRoutine}
     <input
       disabled={!isCompletable}
       data-line="1"
@@ -102,8 +118,7 @@
       on:click|preventDefault={async () => {
         await onClickTask(todo);
       }} />
-    -->
-    <!-- Not using a note name as a concatenation of content + projectID + taskID. Just the title itself -->
+    {/if}
     <a aria-label-position="top" aria-label={todo.content} data-href={todo.content} href={todo.content} class="internal-link" target="_blank" rel="noopener">{todo.content}</a> <span> <a class="link-to-todoist" href="{todo.url}">↳</a></span>
   </div>
   <div class="task-metadata">
@@ -122,14 +137,24 @@
           </svg>
         {/if}
         {metadata.projects.get_or_default(todo.projectID, UnknownProject).name}
+        {#if !isChild && !isRoutine}
         <span>
           |
-            <select class="todoist-task-section">
-            {#each Array(sections?.filter((section) => section.projectID == todo.projectID)?.length) as _, i}
-            <option value="{sections?.filter((section) => section.projectID == todo.projectID)?.[i]?.sectionID}" selected={true ? metadata.sections.get_or_default(todo.sectionID, UnknownSection).id == sections?.filter((section) => section.projectID == todo.projectID)?.[i]?.sectionID : false}>{sections?.filter((section) => section.projectID == todo.projectID)?.[i]?.name}</option>
-            {/each}
-          </select>
+            <!--
+            <select class="todoist-task-section" on:change={onChangeTaskContainer}>
+              {#each Array(sections?.filter((section) => section.projectID == todo.projectID)?.length) as _, i}
+              <option value="{sections?.filter((section) => section.projectID == todo.projectID)?.[i]?.sectionID}" selected={true ? metadata.sections.get_or_default(todo.sectionID, UnknownSection).id == sections?.filter((section) => section.projectID == todo.projectID)?.[i]?.sectionID : false}>{sections?.filter((section) => section.projectID == todo.projectID)?.[i]?.name}</option>
+              {/each}
+            </select>
+        -->
+          <select class="todoist-task-labels" on:change={onChangeTaskContainer}>
+            <option class="todoist-task-label" value="-1" selected={todo.labelIDs?.length == 0 ? true : false}> </option>
+              {#each Array(labels?.length) as _, i}
+              <option class="todoist-task-label" value="{labels?.[i]?.labelID}" selected={todo.labelIDs?.[0] == labels?.[i]?.labelID ? true : false}>{labels?.[i]?.name}</option>
+              {/each}
+            </select>
         </span>
+        {/if}
       </div>
     {/if}
     {#if settings.renderDate && todo.date}
@@ -164,7 +189,7 @@
           </svg>
         {/if}
         {#each todo.labelIDs as labelID, i}
-          {metadata.labels.get_or_default(labelID, 'Unknown label')}{#if i != todo.labelIDs.length - 1}
+          {metadata.labels.get_or_default(labelID, 'UnknownLabel')}{#if i != todo.labelIDs.length - 1}
             ,
           {/if}
         {/each}
@@ -177,6 +202,7 @@
       {settings}
       {api}
       {sorting}
-      {renderProject} />
+      {renderProject}
+      isChild={true}/>
   {/if}
 </li>

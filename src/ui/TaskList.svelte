@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import type { TodoistApi, ITodoistMetadata } from "../api/api";
-  import type { Task, ID, Section } from "../api/models";
+  import type { TodoistApi, ITodoistMetadata, IUpdateTaskOptions } from "../api/api";
+  import type { Task, ID, Section, Label } from "../api/models";
   import type { ISettings } from "../settings";
   import NoTaskDisplay from "./NoTaskDisplay.svelte";
   import TaskRenderer from "./TaskRenderer.svelte";
@@ -11,8 +11,10 @@
   export let api: TodoistApi;
   export let sorting: string[];
   export let sections: Section[];
+  export let labels: Label[];
   export let renderProject: boolean = true;
   export let renderNoTaskInfo: boolean = true;
+  export let isChild: boolean = false;
 
   let metadata: ITodoistMetadata = null;
   const metadataUnsub = api.metadata.subscribe((value) => (metadata = value));
@@ -38,6 +40,12 @@
     tasksPendingClose.filter((id) => id == task.id);
     tasksPendingClose = tasksPendingClose;
   }
+
+  async function onChangeTask(task: Task, options: IUpdateTaskOptions): Promise<boolean> {
+    console.log(task, options)
+    var changed =  await api.updateTask(task.id, options);
+    return changed;
+  }
 </script>
 
 {#if todos.length != 0}
@@ -45,13 +53,15 @@
     {#each todos as todo (todo.id)}
       <TaskRenderer
         {onClickTask}
+        onChangeTask={onChangeTask}
         {metadata}
         {settings}
         {api}
         {sorting}
         {renderProject}
         {todo}
-        sections={sections} />
+        isChild={isChild}
+        labels={labels} />
     {/each}
   </ul>
 {:else if renderNoTaskInfo}

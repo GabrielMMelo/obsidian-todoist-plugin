@@ -69,6 +69,16 @@ ul.todoist-task-list {
   white-space: normal;
 }
 
+.todoist-task-labels {
+  background-color: transparent;
+  color: inherit;
+  border: none;
+}
+
+.todoist-task-label {
+  background-color: #292929!important
+}
+
 .markdown-reading-view .hide-in-reading-view {
   display: none;
 }

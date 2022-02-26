@@ -25,6 +25,16 @@ export interface ICreateTaskOptions {
   label_ids?: number[];
 }
 
+export interface IUpdateTaskOptions {
+  priority?: number;
+  project_id?: number;
+  section_id?: number;
+  description?: string;
+  due_date?: string;
+  label_ids?: number[];
+}
+
+
 export class TodoistApi {
   public metadata: Writable<ITodoistMetadata>;
   public metadataInstance: ITodoistMetadata;
@@ -152,6 +162,24 @@ export class TodoistApi {
       headers: new Headers({
         Authorization: `Bearer ${this.token}`,
       }),
+      method: "POST",
+    });
+
+    return result.ok;
+  }
+
+   async updateTask(id: ID, options?: IUpdateTaskOptions): Promise<boolean> {
+    const url = `https://api.todoist.com/rest/v1/tasks/${id}`;
+    const data = { ...(options ?? {}) };
+
+    debug(url);
+
+    const result = await fetch(url, {
+      headers: new Headers({
+        Authorization: `Bearer ${this.token}`,
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify(data),
       method: "POST",
     });
 

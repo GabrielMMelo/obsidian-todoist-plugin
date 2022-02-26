@@ -5,7 +5,7 @@
   import type IQuery from "../query";
   import type { TodoistApi } from "../api/api";
   import type { Task, Project } from "../api/models";
-  import { Section } from "../api/models";
+  import { /*Section,*/ Label } from "../api/models";
   import TaskList from "./TaskList.svelte";
   import ProjectList from "./ProjectList.svelte";
   import GroupedTaskList from "./GroupedTaskList.svelte";
@@ -79,7 +79,8 @@
   let projects: Result<Project[], Error> = Result.Ok([]);
   let groupedTasks: Result<Project[], Error> = Result.Ok([]);
   let fetching: boolean = false;
-  let sections: Section[];
+  //let sections: Section[];
+  let labels: Label[];
 
   onMount(async () => {
     if (query.onlyProjects) {
@@ -99,7 +100,8 @@
   });
 
   afterUpdate(() => {
-    api.metadata.subscribe((value) => (sections = Section.buildTree(Array.from(value.sections.values()))));
+    //api.metadata.subscribe((value) => (sections = Section.buildTree(Array.from(value.sections.values()))));
+    api.metadata.subscribe((value) => (labels = Label.buildTree(value.labels)));
   }) 
 
   async function fetchTodos() {
@@ -187,7 +189,7 @@
         tasks={tasks.unwrap()}
         settings={settings}
         api={api}
-        sections={sections}
+        labels={labels}
         sorting={query.sorting ?? []} />
     {:else}
       <ErrorDisplay error={tasks.unwrapErr()} />

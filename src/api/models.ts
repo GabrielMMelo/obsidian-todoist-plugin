@@ -3,6 +3,7 @@ import {
   ITaskRaw,
   IProjectRaw,
   ISectionRaw,
+  ILabelRaw,
   UnknownProject,
   UnknownSection,
 } from "./raw_models";
@@ -332,6 +333,28 @@ export class Section {
     const mapping = new Map<ID, Section>();
 
     sections.forEach((section) => mapping.set(section.id, new Section(section)));
+
+    return Array.from(mapping.values());
+  }
+}
+
+export class Label {
+  public readonly labelID: LabelID;
+  //public readonly color: number;
+  //public readonly order: number;
+  public readonly name: string;
+
+  constructor(labelID, name) {
+    this.labelID = labelID;
+    //this.order = raw.order;
+    //this.color = raw.color;
+    this.name = name;
+  }
+
+  static buildTree(labels: ExtendedMap<number, string>): Label[] {
+    const mapping = new Map<ID, Label>();
+
+    labels.forEach((value, key) => mapping.set(key, new Label(key, value)));
 
     return Array.from(mapping.values());
   }
