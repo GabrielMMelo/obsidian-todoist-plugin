@@ -69,13 +69,28 @@ ul.todoist-task-list {
   white-space: normal;
 }
 
-.todoist-task-labels {
+.todoist-task-label-select {
   background-color: transparent;
   color: inherit;
   border: none;
 }
 
-.todoist-task-label {
+.todoist-task-time-select {
+  background-color: transparent;
+  color: inherit;
+  border: none;
+  appearance: none;
+}
+
+.todoist-task-hour-select {
+  margin-right: -4px;
+}
+
+.todoist-task-minute-select {
+  margin-left: -4px;
+}
+
+.todoist-task-option {
   background-color: #292929!important
 }
 

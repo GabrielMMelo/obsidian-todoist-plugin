@@ -8,6 +8,7 @@
     TodoistApi,
   } from "../../api/api";
   import DateSelector from "./DateSelector.svelte";
+  import TimeSelector from "./TimeSelector.svelte";
   import LabelSelector from "./LabelSelector.svelte";
   import PriorityPicker from "./PriorityPicker.svelte";
   import ProjectSelector from "./ProjectSelector.svelte";
@@ -21,7 +22,9 @@
 
   let activeLabels: LabelOption[] = null;
   let activeProject: ProjectOption = null;
+  let offset_hours: number = -3;
   let date: Moment = null;
+  let time: Moment = null;
   let priority: number = 1;
 
   let inputEl: HTMLInputElement;
@@ -56,8 +59,13 @@
       }
     }
 
-    if (date) {
+    if (date && !time) {
       opts.due_date = date.format("YYYY-MM-DD");
+    }
+
+    if (date && time) {
+      date.set({hour:time.hours() + (-1 * offset_hours),minute:time.minutes()})
+      opts.due_datetime = date.format("YYYY-MM-DDTHH:mm:ss") + "Z";
     }
 
     if (description) {
@@ -136,6 +144,12 @@
     <span>Date</span>
     <div>
       <DateSelector bind:selected={date} />
+    </div>
+  </div>
+  <div class="select">
+    <span>Time</span>
+    <div>
+      <TimeSelector bind:selected={time} />
     </div>
   </div>
   <div class="select">

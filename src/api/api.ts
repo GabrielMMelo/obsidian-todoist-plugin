@@ -22,6 +22,7 @@ export interface ICreateTaskOptions {
   section_id?: number;
   description?: string;
   due_date?: string;
+  due_datetime?: string;
   label_ids?: number[];
 }
 
@@ -31,6 +32,7 @@ export interface IUpdateTaskOptions {
   section_id?: number;
   description?: string;
   due_date?: string;
+  due_datetime?: string;
   label_ids?: number[];
 }
 

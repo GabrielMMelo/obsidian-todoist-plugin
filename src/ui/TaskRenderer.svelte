@@ -1,14 +1,19 @@
 <script lang="ts">
   import { App, MarkdownRenderer } from "obsidian";
+  import type { Moment } from "moment";
+  import moment from "moment";
   import { getContext, onMount } from "svelte";
   import { fade } from "svelte/transition";
   import type { ITodoistMetadata, TodoistApi, IUpdateTaskOptions } from "../api/api";
   import type { Task, Section, Label } from "../api/models";
   import { UnknownProject, UnknownSection, UnknownLabel } from "../api/raw_models";
+  import DateSelector from "../modals/createTask/DateSelector.svelte";
+  import CalendarPicker from "../modals/createTask/CalendarPicker.svelte";
   import { showTaskContext } from "../contextMenu";
   import type { ISettings } from "../settings";
   import { APP_CONTEXT_KEY } from "../utils";
   import TaskList from "./TaskList.svelte";
+
 
   export let metadata: ITodoistMetadata;
   export let settings: ISettings;
@@ -27,15 +32,54 @@
   $: isCompletable = !todo.content.startsWith("*");
 
   // todo: create `routine projects` option on settings e make if customizable
-  $: isRoutine = ['routine-tasks'].includes(metadata.projects.get_or_default(todo?.projectID, UnknownProject)?.name)
+  $: isRoutine = ['routine-tasks'].includes(metadata.projects.get_or_default(todo?.projectID, UnknownProject)?.name);
+
+  $: momentDate = moment(todo.rawDatetime);
+  $: momentHour = moment(todo.rawDatetime).hour();
+  $: momentMinute = moment(todo.rawDatetime).minute();
 
   let taskContentEl: HTMLDivElement;
+  let drawerOpen = false;
+  let offset_hours: number = -3;
 
   onMount(async () => {
     await renderMarkdown(todo.content);
   });
 
 
+  function setDate(date: Moment) {
+    //selected = date;
+    console.log(date);
+    let opts: IUpdateTaskOptions = {
+      due_date: date.format("YYYY-MM-DD")
+    };
+    onChangeTask(todo, opts)
+    drawerOpen = false;
+  }
+
+  function setHour(event: Event) {
+    const element = event.currentTarget as HTMLInputElement
+    const hour = parseInt(element.value)
+    console.log(hour);
+    momentDate.set({hour:hour + (-1 * offset_hours)})
+    let opts: IUpdateTaskOptions = {
+      due_datetime: momentDate.format("YYYY-MM-DDTHH:mm:ss") + "Z"
+    };
+    onChangeTask(todo, opts)
+  }
+
+  function setMinute(event: Event) {
+    const element = event.currentTarget as HTMLInputElement
+    const minute = parseInt(element.value)
+    //selected = date;
+    console.log(minute);
+
+    momentDate.set({hour:momentDate.hour() + (-1 * offset_hours), minute:minute})
+    let opts: IUpdateTaskOptions = {
+      due_datetime: momentDate.format("YYYY-MM-DDTHH:mm:ss") + "Z"
+    };
+    onChangeTask(todo, opts)
+  }
 
   async function renderMarkdown(content: string): Promise<void> {
     // Escape leading '#' or '-' so they aren't rendered as headers/bullets.
@@ -95,7 +139,7 @@
     evt.stopPropagation();
     evt.preventDefault();
     console.log("evt", evt.target.value);
-    // chama a funcao do componente pai passando a task id e um objeto IUpdateTaskOptions
+    
     let opts: IUpdateTaskOptions = {
       label_ids: [parseInt(evt.target.value)]
     };
@@ -140,6 +184,18 @@
         {#if !isChild && !isRoutine}
         <span>
           |
+          {#if settings.renderLabelsIcon}
+            <svg
+              class="task-labels-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor">
+              <path
+                fill-rule="evenodd"
+                d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
+                clip-rule="evenodd" />
+            </svg>
+          {/if}
             <!--
             <select class="todoist-task-section" on:change={onChangeTaskContainer}>
               {#each Array(sections?.filter((section) => section.projectID == todo.projectID)?.length) as _, i}
@@ -147,10 +203,10 @@
               {/each}
             </select>
         -->
-          <select class="todoist-task-labels" on:change={onChangeTaskContainer}>
-            <option class="todoist-task-label" value="-1" selected={todo.labelIDs?.length == 0 ? true : false}> </option>
+          <select class="todoist-task-label-select" on:change={onChangeTaskContainer}>
+            <option class="todoist-task-option" value="-1" selected={todo.labelIDs?.length == 0 ? true : false}> </option>
               {#each Array(labels?.length) as _, i}
-              <option class="todoist-task-label" value="{labels?.[i]?.labelID}" selected={todo.labelIDs?.[0] == labels?.[i]?.labelID ? true : false}>{labels?.[i]?.name}</option>
+              <option class="todoist-task-option" value="{labels?.[i]?.labelID}" selected={todo.labelIDs?.[0] == labels?.[i]?.labelID ? true : false}>{labels?.[i]?.name}</option>
               {/each}
             </select>
         </span>
@@ -158,7 +214,8 @@
       </div>
     {/if}
     {#if settings.renderDate && todo.date}
-      <div class="task-date {todo.isOverdue() ? 'task-overdue' : ''}">
+      <div class="task-date {todo.isOverdue() ? 'task-overdue' : ''}"
+        >
         {#if settings.renderDateIcon}
           <svg
             class="task-calendar-icon"
@@ -171,9 +228,40 @@
               clip-rule="evenodd" />
           </svg>
         {/if}
-        {todo.date}
+        <span
+          on:click={(ev) => {
+            if (!drawerOpen) {
+              ev.stopPropagation();
+              drawerOpen = true;
+            }
+            else {
+              ev.stopPropagation();
+              drawerOpen = false;
+            }
+          }}>
+          {momentDate.format('YYYY-MM-DD')}
+        </span>
+        <span style="margin-left: 10px;">
+          <select class="todoist-task-time-select todoist-task-hour-select" on:change={(e) => setHour(e)}>
+            {#each ([...Array(24).keys()].map(x => x++)) as hour}
+              <option class="todoist-task-option" selected={momentHour == hour} value={hour}>{hour > 9 ? hour : '0' + hour}</option>
+            {/each}
+          </select>
+          :
+          <select class="todoist-task-time-select todoist-task-minute-select" on:change={(e) => setMinute(e)}>
+            {#each ([...Array(12).keys()].map(x => x*5)) as minute}
+              <option class="todoist-task-option" selected={momentMinute == minute} value={minute}>{minute > 9 ? minute : '0' + minute}</option>
+            {/each}
+          </select>
+        </span>
+        {#if drawerOpen}
+        <div class="calendar-container">
+          <CalendarPicker bind:selected={momentDate} on:selectDate={(ev) => setDate(ev.detail)} />
+        </div>
+        {/if}
       </div>
     {/if}
+    <!--
     {#if settings.renderLabels && todo.labelIDs.length > 0}
       <div class="task-labels">
         {#if settings.renderLabelsIcon}
@@ -195,6 +283,7 @@
         {/each}
       </div>
     {/if}
+  -->
   </div>
   {#if todo.children.length != 0}
     <TaskList
