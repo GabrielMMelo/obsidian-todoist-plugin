@@ -85,7 +85,7 @@
   transition:fade={{ duration: settings.fadeToggle ? 400 : 0 }}
   class="task-list-item">
   <div>
-    <a aria-label-position="top" aria-label={project.name + "- Project"} data-href={project.name + "- Project"} href={project.name + "- Project"} class="internal-link" target="_blank" rel="noopener">{project.name} </a>
+    <a aria-label-position="top" aria-label={project.name + " - Project"} data-href={project.name + " - Project"} href={project.name + " - Project"} class="internal-link" target="_blank" rel="noopener">{project.name} </a>
   </div>
   <div class="task-metadata">
    {#if project.inboxProject}

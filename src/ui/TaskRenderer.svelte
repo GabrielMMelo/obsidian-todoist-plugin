@@ -180,7 +180,7 @@
               clip-rule="evenodd" />
           </svg>
         {/if}
-        {metadata.projects.get_or_default(todo.projectID, UnknownProject).name}
+        <a aria-label-position="top" aria-label={metadata.projects.get_or_default(todo.projectID, UnknownProject).name + " - Project"} data-href={metadata.projects.get_or_default(todo.projectID, UnknownProject).name + " - Project"} href={metadata.projects.get_or_default(todo.projectID, UnknownProject).name + " - Project"} class="internal-link" target="_blank" rel="noopener">{metadata.projects.get_or_default(todo.projectID, UnknownProject).name} </a>
         {#if !isChild && !isRoutine}
         <span>
           |
