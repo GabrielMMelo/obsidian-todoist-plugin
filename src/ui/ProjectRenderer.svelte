@@ -4,6 +4,7 @@
   import { fade } from "svelte/transition";
   import type { ITodoistMetadata, TodoistApi } from "../api/api";
   import type { Task, Project } from "../api/models";
+  import { Label } from "../api/models";
   import { UnknownProject, UnknownSection } from "../api/raw_models";
   import { showTaskContext } from "../contextMenu";
   import type { ISettings } from "../settings";
@@ -24,10 +25,11 @@
   let tasksDone: number;
   let tasksCount: number;
   let projectProgress: number;
+  let labels;
 
   onMount(async () => {
     await renderMarkdown(project.name);
-    tasksDone = project.sections.filter((section) => section.name == "Done")[0].count();
+    //project.sections.filter((section) => section.name == "Done")[0].count();
     tasksCount = project.count();
     projectProgress = tasksDone/tasksCount*1000;
 
@@ -55,8 +57,26 @@
     }
   }
 
-  function getDone(element, index, array) {
-    return (element.name === "Done")
+  function getDoneCount(project): number {
+    //return (element.name === "Done")
+    api.metadata.subscribe((value) => (labels = Label.buildTree(value.labels)));
+    let doneLabels = ["Done", "Canceled"]
+    let doneLabelsIDs = labels.filter((label) => doneLabels?.includes(label?.name)).map((label) => label?.labelID)
+    console.log("doneLabelsID:", doneLabelsIDs)
+    tasksCount = project.countByLabels(doneLabelsIDs)
+    console.log("tasksDone:", tasksCount)
+    return tasksCount
+  }
+
+  function getSprintCount(project): number {
+    //return (element.name === "Done")
+    api.metadata.subscribe((value) => (labels = Label.buildTree(value.labels)));
+    let notSprintLabels = ["Backlog"]
+    let notSprintLabelsIDs = labels.filter((label) => !notSprintLabels?.includes(label?.name)).map((label) => label?.labelID)
+    console.log("doneLabelsID:", notSprintLabelsIDs)
+    tasksCount = project.countByLabels(notSprintLabelsIDs)
+    console.log("tasksDone:", tasksCount)
+    return tasksCount
   }
           
 </script>
@@ -65,13 +85,13 @@
   transition:fade={{ duration: settings.fadeToggle ? 400 : 0 }}
   class="task-list-item">
   <div>
-    <a aria-label-position="top" aria-label={project.name + "-" + project.projectID} data-href={project.name + "-" + project.projectID} href={project.name + "-" + project.projectID} class="internal-link" target="_blank" rel="noopener">{project.name} </a>
+    <a aria-label-position="top" aria-label={project.name + "- Project"} data-href={project.name + "- Project"} href={project.name + "- Project"} class="internal-link" target="_blank" rel="noopener">{project.name} </a>
   </div>
   <div class="task-metadata">
    {#if project.inboxProject}
    <p>Count: {project.count()}</p>
    {:else} 
-    <img class="progress-badge" src={"https://progress-bar.dev/" + ((project.sections.filter(getDone)[0]?.count()||0)/project.count()*100).toFixed()  + "/?scale=" + "100" + "&title=" + project.name + "&width=400)"}/>
+    <img class="progress-badge" src={"https://progress-bar.dev/" + ((getDoneCount(project)||0)/getSprintCount(project)*100).toFixed()  + "/?scale=" + "100" + "&title=" + project.name + "&width=400)"}/>
    {/if}
   </div>
 </li>

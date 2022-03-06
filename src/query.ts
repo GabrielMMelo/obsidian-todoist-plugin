@@ -7,6 +7,7 @@ export type SortingOptions = typeof sortingOptions[number];
 export default interface IQuery {
   name: string;
   onlyProjects: boolean;
+  sharedProjects: boolean;
   filter: string;
   autorefresh?: number;
   sorting?: SortingOptions[];
@@ -21,6 +22,11 @@ export function parseQuery(query: any): Result<IQuery, Error> {
   if (query.hasOwnProperty("onlyProjects") && typeof query.onlyProjects != "boolean") {
     return Result.Err(new Error("'onlyProjects' field must be a boolean."));
   }
+
+  if (query.hasOwnProperty("sharedProjects") && (typeof query.sharedProjects != "boolean" || !query.onlyProjects)) {
+    return Result.Err(new Error("'sharedProject' field must be a boolean and used only combined with onlyProject."));
+  }
+
 
   if (!query.hasOwnProperty("filter") && !query.hasOwnProperty("onlyProjects")) {
     return Result.Err(new Error("Missing 'filter' field in query"));

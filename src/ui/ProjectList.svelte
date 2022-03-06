@@ -18,7 +18,7 @@
   });
 
   $: activeProjects = projects
-    .filter((project) => !["routine-tasks"].includes(project.name))
+    .filter((project) => !["Routine"].includes(project.name))
     .sort((first: Project, second: Project) => (first.order||0) - (second.order||0));
   /*
   let projectsPendingClose: ID[] = [];

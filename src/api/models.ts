@@ -178,6 +178,7 @@ export class Project {
   public readonly order: number;
   public readonly name: string;
   public readonly inboxProject: boolean;
+  public readonly shared: boolean;
 
   public tasks: Task[];
   public subProjects: Project[];
@@ -191,6 +192,7 @@ export class Project {
     this.order = raw.order;
     this.name = raw.name;
     this.inboxProject = raw.inbox_project;
+    this.shared = raw.shared;
 
     this.tasks = [];
     this.subProjects = [];
@@ -203,6 +205,10 @@ export class Project {
       this.subProjects.reduce((sum, prj) => sum + prj.count(), 0) +
       this.sections.reduce((sum, section) => sum + section.count(), 0)
     );
+  }
+
+  public countByLabels(labels: number[]): number {
+    return this.tasks.reduce((sum, task) => sum + (labels?.includes(task.labelIDs?.[0]) ? task.count() : 0), 0)
   }
 
   private sort() {

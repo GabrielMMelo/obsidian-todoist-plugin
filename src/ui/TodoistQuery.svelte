@@ -162,7 +162,7 @@
 <br />
 {#if query.onlyProjects}
    <ProjectList
-        projects={projects.unwrap()}
+        projects={query.sharedProjects ? projects.unwrap() : projects.unwrap().filter((project) => !project.shared)}
         {settings}
         {api}
         />

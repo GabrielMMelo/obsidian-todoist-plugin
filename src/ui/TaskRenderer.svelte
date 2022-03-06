@@ -32,7 +32,7 @@
   $: isCompletable = !todo.content.startsWith("*");
 
   // todo: create `routine projects` option on settings e make if customizable
-  $: isRoutine = ['routine-tasks'].includes(metadata.projects.get_or_default(todo?.projectID, UnknownProject)?.name);
+  $: isRoutine = ['Routine'].includes(metadata.projects.get_or_default(todo?.projectID, UnknownProject)?.name);
 
   $: momentDate = moment(todo.rawDatetime);
   $: momentHour = moment(todo.rawDatetime).hour();
