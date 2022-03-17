@@ -82,7 +82,7 @@ export default class TodoistPlugin extends Plugin {
       },
     });
 
-    const tokenPath = getTokenPath();
+    const tokenPath = getTokenPath(this.app);
     try {
       const token = await this.app.vault.adapter.read(tokenPath);
       this.api = new TodoistApi(token);

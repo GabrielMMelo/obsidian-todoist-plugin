@@ -1,3 +1,3 @@
-export function getTokenPath(): string {
-  return `.obsidian/todoist-token`;
+export function getTokenPath(app): string {
+  return app.vault.configDir + `/todoist-token`;
 }
