@@ -1,6 +1,8 @@
 <script lang="ts">
   import { App, MarkdownRenderer } from "obsidian";
-  import { getContext, onMount } from "svelte";
+  import { getAPI } from "obsidian-dataview"
+  import { SVGGantt, CanvasGantt, StrGantt } from 'gantt';
+  import { getContext, onMount, afterUpdate } from "svelte";
   import { fade } from "svelte/transition";
   import type { ITodoistMetadata, TodoistApi } from "../api/api";
   import type { Task, Project } from "../api/models";
@@ -22,6 +24,7 @@
   const app = getContext<App>(APP_CONTEXT_KEY);
 
   let taskContentEl: HTMLDivElement;
+  let ganttEl: HTMLDivElement;
   let tasksDone: number;
   let tasksCount: number;
   let projectProgress: number;
@@ -34,7 +37,46 @@
     projectProgress = tasksDone/tasksCount*1000;
 
   });
+
+  afterUpdate(() => {
+    const dvApi = getAPI();
+    console.log("dailyNote:", dvApi?.page('2022-03-20.md'))
+    const data = project.tasks.map((task) => {
+      return {
+        id: task.id,
+        text: task.content,
+        start: task.rawDatetime.toDate(),
+        end: task.rawDatetime.add(task.priority, 'days').toDate(),
+        percent: 0.2  // implement this
+      }
+    })
+    ganttify(data);
+  })
+  
+  function ganttify(data) {
+    const strGantt = new StrGantt(data, {
+      viewMode: 'day',
+      styleOptions: {
+        //bgColor: '#222',
+        //textColor: '#ccc'
+        fontSize: '16px',
+        smallFontSize: '14px',
+      },
+      rowHeight: 60,
+      barHeight: 20,
+      thickWidth: 1.8,
+      maxTextWidth: 400,
+    });
+
+    //new SVGGantt('#svg-root', data, {
+    //  viewMode: 'week'
+    //});
+    const rendered = strGantt.render();
+    ganttEl.innerHTML = rendered
+    //return rendered;
+  }
     
+
   async function renderMarkdown(content: string): Promise<void> {
     // Escape leading '#' or '-' so they aren't rendered as headers/bullets.
     if (content.startsWith("#") || content.startsWith("-")) {
@@ -44,9 +86,10 @@
     // A task starting with '*' signifies that it cannot be completed, so we should strip it from the front of the task.
     if (content.startsWith("*")) {
       content = content.substr(1);
-    } 
+    }
 
     await MarkdownRenderer.renderMarkdown(content, taskContentEl, "", null);
+    
 
     // Remove the wrapping '<p>' tag to force it to inline.
     const markdownContent = taskContentEl.querySelector("p");
@@ -79,6 +122,8 @@
     return tasksCount
   }
           
+ 
+
 </script>
 
 <li
@@ -93,5 +138,7 @@
    {:else} 
     <img class="progress-badge" src={"https://progress-bar.dev/" + ((getDoneCount(project)||0)/getSprintCount(project)*100).toFixed()  + "/?scale=" + "100" + "&title=" + project.name + "&width=400)"}/>
    {/if}
+  </div>
+  <div id='svg-root' bind:this={ganttEl}>
   </div>
 </li>
