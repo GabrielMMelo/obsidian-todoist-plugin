@@ -2,6 +2,7 @@
   import { App, MarkdownRenderer } from "obsidian";
   import { getAPI } from "obsidian-dataview"
   import { SVGGantt, CanvasGantt, StrGantt } from 'gantt';
+  import ProgressBar from 'progressbar.js';
   import { getContext, onMount, afterUpdate } from "svelte";
   import { fade } from "svelte/transition";
   import type { ITodoistMetadata, TodoistApi } from "../api/api";
@@ -24,57 +25,61 @@
   const app = getContext<App>(APP_CONTEXT_KEY);
 
   let taskContentEl: HTMLDivElement;
-  let ganttEl: HTMLDivElement;
+  let progressBarEl: HTMLDivElement;
+  let pbObject;
   let tasksDone: number;
   let tasksCount: number;
   let projectProgress: number;
   let labels;
+  
 
   onMount(async () => {
     await renderMarkdown(project.name);
     //project.sections.filter((section) => section.name == "Done")[0].count();
     tasksCount = project.count();
     projectProgress = tasksDone/tasksCount*1000;
-
   });
 
   afterUpdate(() => {
-    const dvApi = getAPI();
-    console.log("dailyNote:", dvApi?.page('2022-03-20.md'))
-    const data = project.tasks.map((task) => {
-      return {
-        id: task.id,
-        text: task.content,
-        start: task.rawDatetime.toDate(),
-        end: task.rawDatetime.add(task.priority, 'days').toDate(),
-        percent: 0.2  // implement this
-      }
-    })
-    ganttify(data);
-  })
-  
-  function ganttify(data) {
-    const strGantt = new StrGantt(data, {
-      viewMode: 'day',
-      styleOptions: {
-        //bgColor: '#222',
-        //textColor: '#ccc'
-        fontSize: '16px',
-        smallFontSize: '14px',
+    if (project.inboxProject) {
+      progressBarEl.remove();
+      return;
+    }
+    if (pbObject?.value() !== undefined) { 
+      pbObject.destroy();
+      console.log("DESTROYING");
+    }
+    pbObject = new ProgressBar.Line(progressBarEl, {
+      strokeWidth: 4,
+      easing: 'easeInOut',
+      duration: 1400,
+      color: '#FFEA82',
+      trailColor: '#eee',
+      trailWidth: 1,
+      svgStyle: {width: '100%', height: '100%'},
+      from: {color: '#ED6A5A'},
+      to: {color:  '#6AED5A'},
+      text: {
+        style: {
+          // Text color.
+          // Default: same as stroke color (options.color)
+          color: '#999',
+          position: 'absolute',
+          right: '0',
+          top: '30px',
+          padding: 0,
+          margin: 0,
+          transform: null
+        },
+         autoStyleContainer: false
       },
-      rowHeight: 60,
-      barHeight: 20,
-      thickWidth: 1.8,
-      maxTextWidth: 400,
+      step: (state, bar) => {
+        bar.setText((getDoneCount(project)||0) + "/" + getSprintCount(project) + "   " + Math.round(bar.value() * 100) + ' %');
+        bar.path.setAttribute('stroke', state.color);
+      }
     });
-
-    //new SVGGantt('#svg-root', data, {
-    //  viewMode: 'week'
-    //});
-    const rendered = strGantt.render();
-    ganttEl.innerHTML = rendered
-    //return rendered;
-  }
+    pbObject?.set((getDoneCount(project)||0)/getSprintCount(project));
+});
     
 
   async function renderMarkdown(content: string): Promise<void> {
@@ -136,9 +141,9 @@
    {#if project.inboxProject}
    <p>Count: {project.count()}</p>
    {:else} 
-    <img class="progress-badge" src={"https://progress-bar.dev/" + ((getDoneCount(project)||0)/getSprintCount(project)*100).toFixed()  + "/?scale=" + "100" + "&title=" + project.name + "&width=400)"}/>
+    
+    <!--<img class="progress-badge" src={"https://progress-bar.dev/" + ((getDoneCount(project)||0)/getSprintCount(project)*100).toFixed()  + "/?scale=" + "100" + "&title=" + project.name + "&width=400)"}/>-->
    {/if}
   </div>
-  <div id='svg-root' bind:this={ganttEl}>
-  </div>
+  <div id="progress-badge" bind:this={progressBarEl}></div>
 </li>

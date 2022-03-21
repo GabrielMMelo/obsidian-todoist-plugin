@@ -106,6 +106,13 @@ ul.todoist-task-list {
   width: 100%;
 }
 
+#progress-badge {
+  margin: 20px;
+  width: 400px;
+  height: 8px;
+  position: relative;
+}
+
 .link-to-todoist {
   text-decoration: none;
 }

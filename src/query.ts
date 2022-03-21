@@ -8,6 +8,7 @@ export default interface IQuery {
   name: string;
   onlyProjects: boolean;
   sharedProjects: boolean;
+  showGantt: boolean;
   filter: string;
   autorefresh?: number;
   sorting?: SortingOptions[];
@@ -27,6 +28,9 @@ export function parseQuery(query: any): Result<IQuery, Error> {
     return Result.Err(new Error("'sharedProject' field must be a boolean and used only combined with onlyProject."));
   }
 
+  if (query.hasOwnProperty("showGantt") && (typeof query.showGantt != "boolean" || !query.onlyProjects)) {
+    return Result.Err(new Error("'showGantt' field must be a boolean and used only combined with onlyProject."));
+  }
 
   if (!query.hasOwnProperty("filter") && !query.hasOwnProperty("onlyProjects")) {
     return Result.Err(new Error("Missing 'filter' field in query"));

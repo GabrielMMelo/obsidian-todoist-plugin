@@ -130,7 +130,6 @@
 
     try {
       fetching = true;
-      //projects = await api.getProjectsTree();
       projects = await api.getTasksGroupedByProject();
       fetchedOnce = true;
     } finally {
@@ -163,8 +162,9 @@
 {#if query.onlyProjects}
    <ProjectList
         projects={query.sharedProjects ? projects.unwrap() : projects.unwrap().filter((project) => !project.shared)}
-        {settings}
-        {api}
+        settings={settings}
+        api={api}
+        showGantt={query.showGantt}
         />
 {:else}
   {#if fetchedOnce}
