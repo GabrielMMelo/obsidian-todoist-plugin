@@ -22,6 +22,7 @@
 
 .task-metadata {
   margin-left: 30px;
+  display: block!important;
 }
 
 .task-calendar-icon,
