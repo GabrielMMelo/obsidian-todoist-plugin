@@ -109,9 +109,10 @@ ul.todoist-task-list {
 
 #progress-badge {
   margin: 20px;
-  width: 400px;
+  width: 85%;
   height: 8px;
   position: relative;
+  margin-bottom: 40px;
 }
 
 .link-to-todoist {
